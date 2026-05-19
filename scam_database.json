@@ -1,0 +1,86 @@
+[
+    {
+        "phone": "03001234567",
+        "url": "",
+        "scam_type": "JOB_SCAM",
+        "reports": 5,
+        "date": "2026-05-10"
+    },
+    {
+        "phone": "03111234567",
+        "url": "",
+        "scam_type": "PHISHING",
+        "reports": 3,
+        "date": "2026-04-28"
+    },
+    {
+        "phone": "",
+        "url": "hbl-secure-login.xyz",
+        "scam_type": "PHISHING",
+        "reports": 8,
+        "date": "2026-05-15"
+    },
+    {
+        "phone": "03211234567",
+        "url": "",
+        "scam_type": "ADVANCE_FEE",
+        "reports": 2,
+        "date": "2026-03-01"
+    },
+    {
+        "phone": "",
+        "url": "techpk-jobs.xyz",
+        "scam_type": "JOB_SCAM",
+        "reports": 4,
+        "date": "2026-05-12"
+    },
+    {
+        "phone": "03451234567",
+        "url": "",
+        "scam_type": "INVESTMENT_SCAM",
+        "reports": 6,
+        "date": "2026-05-18"
+    },
+    {
+        "phone": "03001111111",
+        "url": "",
+        "scam_type": "PRIZE_LOTTERY",
+        "reports": 1,
+        "date": "2025-11-20"
+    },
+    {
+        "phone": "",
+        "url": "jazz-prize-winner.tk",
+        "scam_type": "PRIZE_LOTTERY",
+        "reports": 3,
+        "date": "2026-04-05"
+    },
+    {
+        "phone": "03331234567",
+        "url": "",
+        "scam_type": "INVESTMENT_SCAM",
+        "reports": 7,
+        "date": "2026-05-17"
+    },
+    {
+        "phone": "",
+        "url": "fbr-refund.xyz",
+        "scam_type": "GOVT_IMPERSONATION",
+        "reports": 6,
+        "date": "2026-05-14"
+    },
+    {
+        "phone": "03211111111",
+        "url": "",
+        "scam_type": "ROMANCE_SCAM",
+        "reports": 2,
+        "date": "2026-04-20"
+    },
+    {
+        "phone": "",
+        "url": "easypaisa-win.tk",
+        "scam_type": "PRIZE_LOTTERY",
+        "reports": 5,
+        "date": "2026-05-11"
+    }
+]
