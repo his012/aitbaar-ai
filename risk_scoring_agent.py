@@ -1,18 +1,18 @@
 import os
 import json
 # pyrefly: ignore [missing-import]
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # 6. Loads dotenv at top
 load_dotenv()
 
 # 5. Gets API key from os.environ["GEMINI_API_KEY"]
-api_key = os.environ.get("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
+if "GEMINI_API_KEY" in os.environ:
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 else:
     print("Warning: GEMINI_API_KEY not found in environment variables.")
+    client = None
 
 # 1. Reads skills/risk_scoring_skill.md file at the start
 def load_skill_file(filepath):
@@ -31,12 +31,8 @@ def risk_scoring_agent(identity_result, pattern_result, behavioral_result, reput
     try:
         if not RISK_SCORING_SKILL_PROMPT:
             raise ValueError("Risk scoring skill prompt could not be loaded.")
-
-        # 4. Uses gemini-2.5-flash model
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=RISK_SCORING_SKILL_PROMPT
-        )
+        if not client:
+            raise ValueError("Gemini client not initialized. Check GEMINI_API_KEY.")
 
         # 8. Sends all 4 results combined as JSON to Gemini
         combined_inputs = {
@@ -47,8 +43,9 @@ def risk_scoring_agent(identity_result, pattern_result, behavioral_result, reput
         }
 
         prompt = f"Please analyze the following agent results according to your skill instructions and calculate the final risk score and verdict. Return the JSON analysis.\n\nAgent Results:\n{json.dumps(combined_inputs, indent=2)}"
+        full_prompt = f"{RISK_SCORING_SKILL_PROMPT}\n\n{prompt}"
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
         response_text = response.text
 
         # 9. Cleans response and returns parsed JSON dict

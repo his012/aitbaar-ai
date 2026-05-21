@@ -1,18 +1,18 @@
 import os
 import json
 # pyrefly: ignore [missing-import]
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # 5. Loads dotenv at top
 load_dotenv()
 
 # 4. Gets API key from os.environ["GEMINI_API_KEY"]
-api_key = os.environ.get("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
+if "GEMINI_API_KEY" in os.environ:
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 else:
     print("Warning: GEMINI_API_KEY not found in environment variables.")
+    client = None
 
 # 1. Reads skills/action_skill.md file at the start
 def load_skill_file(filepath):
@@ -31,12 +31,8 @@ def action_agent(trust_score, verdict, scam_type, key_reasons):
     try:
         if not ACTION_SKILL_PROMPT:
             raise ValueError("Action skill prompt could not be loaded.")
-
-        # 3. Uses gemini-2.5-flash model
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=ACTION_SKILL_PROMPT
-        )
+        if not client:
+            raise ValueError("Gemini client not initialized. Check GEMINI_API_KEY.")
 
         # 7. Sends input data to Gemini
         input_data = {
@@ -47,8 +43,9 @@ def action_agent(trust_score, verdict, scam_type, key_reasons):
         }
 
         prompt = f"Please provide the protective action plan based on the following verdict details according to your skill instructions.\n\nInput Details:\n{json.dumps(input_data, indent=2)}"
+        full_prompt = f"{ACTION_SKILL_PROMPT}\n\n{prompt}"
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
         response_text = response.text
 
         # 8. Cleans response and returns parsed JSON dict

@@ -1,18 +1,18 @@
 import os
 import json
 # pyrefly: ignore [missing-import]
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # 8. Loads dotenv at top
 load_dotenv()
 
 # 7. Gets API key from os.environ["GEMINI_API_KEY"]
-api_key = os.environ.get("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
+if "GEMINI_API_KEY" in os.environ:
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 else:
     print("Warning: GEMINI_API_KEY not found in environment variables.")
+    client = None
 
 # 1. Reads skills/reputation_skill.md file at the start
 def load_skill_file(filepath):
@@ -61,17 +61,14 @@ def reputation_agent(phone, url):
 
         if not REPUTATION_SKILL_PROMPT:
             raise ValueError("Reputation skill prompt could not be loaded.")
-
-        # 5. If matches found: use gemini-2.5-flash with skill file as system prompt
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=REPUTATION_SKILL_PROMPT
-        )
+        if not client:
+            raise ValueError("Gemini client not initialized. Check GEMINI_API_KEY.")
 
         # 6. Send matches as JSON string to Gemini
         prompt = f"Please analyze the following matched database records according to your skill instructions and return the JSON analysis.\n\nRecords:\n{json.dumps(matches, indent=2)}"
+        full_prompt = f"{REPUTATION_SKILL_PROMPT}\n\n{prompt}"
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
         response_text = response.text
 
         # 9. Cleans response and returns parsed JSON dict

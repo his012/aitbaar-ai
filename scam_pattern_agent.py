@@ -1,5 +1,7 @@
 import os
 import json
+import re
+import ast
 # pyrefly: ignore [missing-import]
 from google import genai
 from dotenv import load_dotenv
@@ -55,8 +57,27 @@ def scam_pattern_agent(message_text):
         # 8. Cleans response
         cleaned_text = clean_json(response_text)
 
-        # 9. Returns parsed JSON dict
-        result = json.loads(cleaned_text)
+        # 1. Remove special unicode characters
+        cleaned_text = re.sub(r'[\u200b\u200c\u200d\ufeff]', '', cleaned_text)
+
+        # 2. Fix trailing commas before } or ]
+        cleaned_text = re.sub(r',\s*([}\]])', r'\1', cleaned_text)
+
+        # 3. Fix any apostrophes or smart quotes
+        cleaned_text = cleaned_text.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'")
+
+        # 4. Make the JSON parsing more robust
+        try:
+            # 9. Returns parsed JSON dict
+            result = json.loads(cleaned_text)
+        except json.JSONDecodeError:
+            try:
+                # Fallback to ast.literal_eval to handle Python-like dict strings
+                eval_text = cleaned_text.replace('true', 'True').replace('false', 'False').replace('null', 'None')
+                result = ast.literal_eval(eval_text)
+            except (ValueError, SyntaxError) as e:
+                raise ValueError(f"Could not parse JSON even with robust fallback. Error: {e}")
+                
         return result
 
     except Exception as e:

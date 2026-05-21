@@ -5,10 +5,38 @@ import csv
 import base64
 import pathlib
 import PyPDF2
+import re
 # pyrefly: ignore [missing-import]
 from PIL import Image
 from dotenv import load_dotenv
 from google import genai
+
+def extract_contact_info(text):
+    info = {"phone": "", "url": "", "email": "", "sender_name": ""}
+    if not text:
+        return info
+        
+    # 1. Phone (03XX-XXXXXXX or 03XXXXXXXXX)
+    phone_match = re.search(r'03\d{2}[-\s]?\d{7}', text)
+    if phone_match:
+        info["phone"] = phone_match.group(0).replace('-', '').replace(' ', '')
+        
+    # 2. URL/Domain (e.g., www.xxx.com, techpk.xyz, https://...)
+    url_match = re.search(r'\b(?:https?://|www\.)[^\s]+|\b[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b', text)
+    if url_match:
+        info["url"] = url_match.group(0)
+        
+    # 3. Email (xxx@xxx.com)
+    email_match = re.search(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', text)
+    if email_match:
+        info["email"] = email_match.group(0)
+        
+    # 4. Sender Name (From: John Doe or Sender: Tech HR)
+    sender_match = re.search(r'(?:From|Sender):\s*([^\n\r]+)', text, re.IGNORECASE)
+    if sender_match:
+        info["sender_name"] = sender_match.group(1).strip()
+        
+    return info
 
 # Import the 6 agents
 from behavioral_agent import behavioral_agent
@@ -35,10 +63,9 @@ def process_input(raw_input):
     if isinstance(raw_input, str) and (raw_input.startswith("http://") or raw_input.startswith("https://")):
         inputs["url"] = raw_input
         inputs["message_text"] = "URL provided for analysis"
-        return inputs
         
     # Check if raw_input is a path to a file
-    if isinstance(raw_input, str) and os.path.isfile(raw_input):
+    elif isinstance(raw_input, str) and os.path.isfile(raw_input):
         ext = pathlib.Path(raw_input).suffix.lower()
         
         # 1. PDF file (.pdf extension)
@@ -52,7 +79,6 @@ def process_input(raw_input):
                 inputs["message_text"] = extracted_text.strip()
             except Exception as e:
                 inputs["message_text"] = f"Error reading PDF: {str(e)}"
-            return inputs
             
         # 2. Image file (.png .jpg .jpeg)
         elif ext in [".png", ".jpg", ".jpeg"]:
@@ -83,7 +109,6 @@ def process_input(raw_input):
                 inputs["message_text"] = response.text.strip()
             except Exception as e:
                 inputs["message_text"] = f"Error reading image: {str(e)}"
-            return inputs
             
         # 3. CSV file (.csv extension)
         elif ext == ".csv":
@@ -96,10 +121,16 @@ def process_input(raw_input):
                 inputs["message_text"] = extracted_text.strip()
             except Exception as e:
                 inputs["message_text"] = f"Error reading CSV: {str(e)}"
-            return inputs
+    else:
+        # 5. Plain text (anything else)
+        inputs["message_text"] = str(raw_input)
 
-    # 5. Plain text (anything else)
-    inputs["message_text"] = str(raw_input)
+    # Extract contact info and merge
+    extracted = extract_contact_info(inputs["message_text"])
+    for key in ["phone", "url", "email", "sender_name"]:
+        if extracted.get(key) and not inputs.get(key):
+            inputs[key] = extracted[key]
+
     return inputs
 
 def show_before_after(input_type, raw_input, final_result):
@@ -182,7 +213,7 @@ def execute_actions(actions):
             
     return results
 
-def run_pipeline(raw_input, input_type="Plain Text"):
+def run_pipeline(raw_input, input_type="Plain Text", **kwargs):
     print("\n==============================================")
     print("   AITBAAR AI - Scam Detection Starting...")
     print("==============================================\n")
@@ -191,10 +222,10 @@ def run_pipeline(raw_input, input_type="Plain Text"):
     inputs = process_input(raw_input)
     
     message_text = inputs.get("message_text", "")
-    url = inputs.get("url", "")
-    phone = inputs.get("phone", "")
-    sender_name = inputs.get("sender_name", "")
-    email = inputs.get("email", "")
+    url = kwargs.get("url", inputs.get("url", ""))
+    phone = kwargs.get("phone", inputs.get("phone", ""))
+    sender_name = kwargs.get("sender_name", inputs.get("sender_name", ""))
+    email = kwargs.get("email", inputs.get("email", ""))
 
     # 2. Call baseline comparison
     print(">>> 0. Running Baseline Comparison (No AI)...")
@@ -284,7 +315,14 @@ if __name__ == "__main__":
     
     # 1. Plain text
     test_text = "Congratulations! Aap ko remote job mil gai hai salary 80,000 per month. Sirf 2000 registration fee send karo JazzCash 0300-1234567 par. Apply karo agly 24 ghanton mein warna offer cancel ho jaye ga."
-    run_pipeline(test_text, "Plain Text")
+    run_pipeline(
+        test_text, 
+        "Plain Text",
+        url="techpk-jobs.xyz",
+        phone="03001234567",
+        sender_name="TechPk HR",
+        email="hr@gmail.com"
+    )
     
     # 2. URL
     # run_pipeline("https://hbl-secure-login.xyz", "URL")
