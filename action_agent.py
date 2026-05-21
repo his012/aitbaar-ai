@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 # 5. Loads dotenv at top
 load_dotenv()
 
-# 4. Gets API key from os.environ["GEMINI_API_KEY"]
-if "GEMINI_API_KEY" in os.environ:
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+# 4. Gets API key from os.environ["GEMINI_API_KEY_ACTION"]
+if "GEMINI_API_KEY_ACTION" in os.environ:
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY_ACTION"])
 else:
-    print("Warning: GEMINI_API_KEY not found in environment variables.")
+    print("Warning: GEMINI_API_KEY_ACTION not found in environment variables.")
     client = None
 
 # 1. Reads skills/action_skill.md file at the start

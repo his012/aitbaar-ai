@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 # Loads dotenv at top
 load_dotenv()
 
-# Gets API key from os.environ["GEMINI_API_KEY"]
-api_key = os.environ.get("GEMINI_API_KEY")
+# Gets API key from os.environ["GEMINI_API_KEY_BEHAVIORAL"]
+api_key = os.environ.get("GEMINI_API_KEY_BEHAVIORAL")
 if not api_key:
-    print("Warning: GEMINI_API_KEY not found in environment variables.")
+    print("Warning: GEMINI_API_KEY_BEHAVIORAL not found in environment variables.")
 
 # Reads skills/behavioral_skill.md file at the start
 def load_skill_file(filepath):

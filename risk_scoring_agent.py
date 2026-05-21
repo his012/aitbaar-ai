@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 # 6. Loads dotenv at top
 load_dotenv()
 
-# 5. Gets API key from os.environ["GEMINI_API_KEY"]
-if "GEMINI_API_KEY" in os.environ:
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+# 5. Gets API key from os.environ["GEMINI_API_KEY_RISK"]
+if "GEMINI_API_KEY_RISK" in os.environ:
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY_RISK"])
 else:
-    print("Warning: GEMINI_API_KEY not found in environment variables.")
+    print("Warning: GEMINI_API_KEY_RISK not found in environment variables.")
     client = None
 
 # 1. Reads skills/risk_scoring_skill.md file at the start
